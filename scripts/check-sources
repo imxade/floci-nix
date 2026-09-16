@@ -1,0 +1,115 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+cli_file="${root}/source-cli.nix"
+images_file="${root}/sources-images.nix"
+fake='sha256-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA='
+bootstrap_digest='sha256:0000000000000000000000000000000000000000000000000000000000000000'
+
+version="$(nix eval --raw --file "$cli_file" version)"
+tag="$(nix eval --raw --file "$cli_file" tag)"
+url="$(nix eval --raw --file "$cli_file" url)"
+hash="$(nix eval --raw --file "$cli_file" hash)"
+
+if [[ "$version" == *bootstrap* || "$tag" == *bootstrap* || "$hash" == "$fake" ]]; then
+  printf '%s\n' 'error: source-cli.nix still contains bootstrap metadata' >&2
+  exit 1
+fi
+if [[ ! "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ || "${tag#v}" != "$version" ]]; then
+  printf 'error: CLI tag/version mismatch: tag=%s version=%s\n' "$tag" "$version" >&2
+  exit 1
+fi
+expected_cli_url="https://github.com/floci-io/floci-cli/releases/download/${tag}/floci.jar"
+if [[ "$url" != "$expected_cli_url" ]]; then
+  printf 'error: unexpected CLI URL\nexpected: %s\nactual:   %s\n' "$expected_cli_url" "$url" >&2
+  exit 1
+fi
+if [[ ! "$hash" =~ ^sha256-[A-Za-z0-9+/]{43}=$ ]]; then
+  printf 'error: malformed CLI source hash: %s\n' "$hash" >&2
+  exit 1
+fi
+
+source_product() {
+  case "$1" in
+    aws|aws-compat|aws-baseline) printf '%s\n' 'aws' ;;
+    azure) printf '%s\n' 'azure' ;;
+    gcp) printf '%s\n' 'gcp' ;;
+    oci|oci-compat) printf '%s\n' 'oci' ;;
+    *) return 1 ;;
+  esac
+}
+
+product_image() {
+  case "$1" in
+    aws) printf '%s\n' 'floci/floci' ;;
+    azure) printf '%s\n' 'floci/floci-az' ;;
+    gcp) printf '%s\n' 'floci/floci-gcp' ;;
+    oci) printf '%s\n' 'floci/floci-oci' ;;
+    *) return 1 ;;
+  esac
+}
+
+source_suffix() {
+  case "$1" in
+    aws|azure|gcp|oci) printf '%s' '' ;;
+    aws-compat|oci-compat) printf '%s' '-compat' ;;
+    aws-baseline) printf '%s' '-baseline' ;;
+    *) return 1 ;;
+  esac
+}
+
+source_systems() {
+  case "$1" in
+    aws-baseline) printf '%s\n' 'aarch64-linux' ;;
+    aws|aws-compat|azure|gcp|oci|oci-compat) printf '%s\n' 'x86_64-linux' 'aarch64-linux' ;;
+    *) return 1 ;;
+  esac
+}
+
+system_arch() {
+  case "$1" in
+    x86_64-linux) printf '%s\n' 'amd64' ;;
+    aarch64-linux) printf '%s\n' 'arm64' ;;
+    *) return 1 ;;
+  esac
+}
+
+read_image() {
+  local source_key=$1 system=$2 attr=$3
+  nix eval --raw --file "$images_file" "\"${source_key}\".\"${system}\".${attr}"
+}
+
+systems=()
+for source_key in aws aws-compat aws-baseline azure gcp oci oci-compat; do
+  product="$(source_product "$source_key")"
+  expected_image="$(product_image "$product")"
+  suffix="$(source_suffix "$source_key")"
+
+  mapfile -t systems < <(source_systems "$source_key")
+  for system in "${systems[@]}"; do
+    expected_arch="$(system_arch "$system")"
+    image_version="$(read_image "$source_key" "$system" version)"
+    image_name="$(read_image "$source_key" "$system" imageName)"
+    upstream_tag="$(read_image "$source_key" "$system" upstreamTag)"
+    digest="$(read_image "$source_key" "$system" imageDigest)"
+    image_hash="$(read_image "$source_key" "$system" hash)"
+    final_name="$(read_image "$source_key" "$system" finalImageName)"
+    final_tag="$(read_image "$source_key" "$system" finalImageTag)"
+    arch="$(read_image "$source_key" "$system" arch)"
+
+    [[ "$image_version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] || { printf 'error: invalid version for %s/%s\n' "$source_key" "$system" >&2; exit 1; }
+    [[ "$image_name" == "$expected_image" ]] || { printf 'error: wrong imageName for %s/%s\n' "$source_key" "$system" >&2; exit 1; }
+    [[ "$upstream_tag" == "${image_version}${suffix}" ]] || { printf 'error: wrong versioned upstreamTag for %s/%s\n' "$source_key" "$system" >&2; exit 1; }
+    [[ "$arch" == "$expected_arch" ]] || { printf 'error: wrong arch for %s/%s\n' "$source_key" "$system" >&2; exit 1; }
+    [[ "$digest" =~ ^sha256:[0-9a-f]{64}$ && "$digest" != "$bootstrap_digest" ]] || { printf 'error: malformed/bootstrap digest for %s/%s\n' "$source_key" "$system" >&2; exit 1; }
+    [[ "$image_hash" =~ ^sha256-[A-Za-z0-9+/]{43}=$ && "$image_hash" != "$fake" ]] || { printf 'error: malformed/bootstrap Nix hash for %s/%s\n' "$source_key" "$system" >&2; exit 1; }
+    [[ "$final_name" == "floci-nix/${source_key}" ]] || { printf 'error: wrong finalImageName for %s/%s\n' "$source_key" "$system" >&2; exit 1; }
+
+    digest_hex="${digest#sha256:}"
+    expected_tag="${image_version}-sha256-${digest_hex:0:16}"
+    [[ "$final_tag" == "$expected_tag" ]] || { printf 'error: finalImageTag does not correspond to version/digest for %s/%s\n' "$source_key" "$system" >&2; exit 1; }
+  done
+done
+
+printf 'source metadata is structurally valid: floci-cli %s + every stable FloCI release image variant\n' "$version"

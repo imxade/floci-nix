@@ -1,0 +1,96 @@
+name: Update FloCI
+
+on:
+  schedule:
+    # Four times daily, off the top of the hour.
+    - cron: "29 1,7,13,19 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: floci-nix-maintenance
+  cancel-in-progress: false
+
+jobs:
+  update:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 180
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Install Nix
+        uses: cachix/install-nix-action@13d8dd58da0234aa297dedd986986ccb8e7f3e24 # v31.11.1
+        with:
+          github_access_token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Resolve current FloCI stable releases
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: nix develop -c ./scripts/update-sources
+
+      - name: Detect changes
+        id: changes
+        shell: bash
+        run: |
+          if git diff --quiet HEAD -- source-cli.nix sources-images.nix; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Validate source metadata
+        if: steps.changes.outputs.changed == 'true'
+        run: ./scripts/check-sources
+
+      - name: Check formatting
+        if: steps.changes.outputs.changed == 'true'
+        run: nix fmt -- --check flake.nix package-cli.nix package-images.nix package-launchers.nix source-cli.nix sources-images.nix
+
+      - name: Flake checks
+        if: steps.changes.outputs.changed == 'true'
+        run: nix flake check --print-build-logs
+
+      - name: Build all x86_64 stable packages
+        if: steps.changes.outputs.changed == 'true'
+        run: |
+          nix build \
+            .#floci \
+            .#floci-aws \
+            .#floci-aws-compat \
+            .#floci-az \
+            .#floci-gcp \
+            .#floci-oci \
+            .#floci-oci-compat \
+            .#aws-image \
+            .#aws-compat-image \
+            .#azure-image \
+            .#gcp-image \
+            .#oci-image \
+            .#oci-compat-image \
+            --print-build-logs
+
+      - name: Evaluate aarch64 packages
+        if: steps.changes.outputs.changed == 'true'
+        run: |
+          for package in \
+            floci floci-aws floci-aws-compat floci-aws-baseline \
+            floci-az floci-gcp floci-oci floci-oci-compat \
+            aws-image aws-compat-image aws-baseline-image \
+            azure-image gcp-image oci-image oci-compat-image; do
+            nix eval --raw ".#packages.aarch64-linux.${package}.drvPath" >/dev/null
+          done
+
+      - name: Commit validated update
+        if: steps.changes.outputs.changed == 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+          cli_version="$(nix eval --raw .#floci.version)"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add source-cli.nix sources-images.nix
+          git commit -m "floci: update stable sources (cli ${cli_version})"
+          git push origin "HEAD:${GITHUB_REF_NAME}"

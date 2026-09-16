@@ -1,0 +1,111 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+cd "$root"
+
+printf '==> Ensuring flake inputs are locked\n'
+nix flake lock
+
+printf '==> Resolving current FloCI CLI and stable release images\n'
+nix develop -c ./scripts/update-sources
+
+printf '==> Validating generated source metadata\n'
+./scripts/check-sources
+
+printf '==> Checking formatting\n'
+nix fmt -- --check flake.nix package-cli.nix package-images.nix package-launchers.nix source-cli.nix sources-images.nix
+
+printf '==> Running flake checks for the local system\n'
+nix flake check --print-build-logs
+
+build_targets=(
+  .#floci
+  .#floci-aws
+  .#floci-aws-compat
+  .#floci-az
+  .#floci-gcp
+  .#floci-oci
+  .#floci-oci-compat
+  .#aws-image
+  .#aws-compat-image
+  .#azure-image
+  .#gcp-image
+  .#oci-image
+  .#oci-compat-image
+)
+
+if [[ "$(nix eval --impure --raw --expr builtins.currentSystem)" == aarch64-linux ]]; then
+  build_targets+=( .#floci-aws-baseline .#aws-baseline-image )
+fi
+
+printf '==> Building CLI, launchers, and every stable local-architecture image variant\n'
+nix build "${build_targets[@]}" --print-build-logs
+
+printf '==> Checking CLI\n'
+nix run .#floci -- --version
+
+printf '==> Evaluating both supported architectures\n'
+for system in x86_64-linux aarch64-linux; do
+  packages=(
+    floci
+    floci-aws
+    floci-aws-compat
+    floci-az
+    floci-gcp
+    floci-oci
+    floci-oci-compat
+    aws-image
+    aws-compat-image
+    azure-image
+    gcp-image
+    oci-image
+    oci-compat-image
+  )
+  if [[ "$system" == aarch64-linux ]]; then
+    packages+=( floci-aws-baseline aws-baseline-image )
+  fi
+  for package in "${packages[@]}"; do
+    nix eval --raw ".#packages.${system}.${package}.drvPath" >/dev/null
+  done
+done
+
+printf '==> Verifying updater is idempotent\n'
+before="$(sha256sum source-cli.nix sources-images.nix)"
+nix develop -c ./scripts/update-sources >/dev/null
+after="$(sha256sum source-cli.nix sources-images.nix)"
+test "$before" = "$after"
+
+if [[ "${FLOCI_RUN_DOCKER_SMOKE_TESTS:-0}" == 1 ]]; then
+  printf '==> Running Docker smoke tests for available stable variants\n'
+  cases=(
+    'aws:aws:4566'
+    'aws-compat:aws:4566'
+    'azure:azure:4577'
+    'gcp:gcp:4588'
+    'oci:oci:4599'
+    'oci-compat:oci:4599'
+  )
+  if [[ "$(nix eval --impure --raw --expr builtins.currentSystem)" == aarch64-linux ]]; then
+    cases+=( 'aws-baseline:aws:4566' )
+  fi
+
+  for item in "${cases[@]}"; do
+    IFS=: read -r app product port <<<"$item"
+    container="floci-nix-smoke-${app}-$$"
+
+    nix run ".#${app}" -- start --detach --container "$container"
+    trap 'docker rm -f "'"$container"'" >/dev/null 2>&1 || true' EXIT
+
+    nix run ".#${app}" -- wait --container "$container" --timeout 60s
+    nix run ".#${app}" -- status --container "$container" >/dev/null
+    docker inspect --format '{{.Config.Image}}' "$container" | grep -F "floci-nix/" >/dev/null
+    curl --fail --silent --show-error "http://127.0.0.1:${port}/health" >/dev/null || true
+    nix run ".#${app}" -- stop --container "$container" --remove
+    trap - EXIT
+
+    printf '  passed: %s (%s)\n' "$app" "$product"
+  done
+fi
+
+printf '==> Validation passed\n'
