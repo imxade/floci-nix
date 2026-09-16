@@ -26,8 +26,8 @@ The archive is a bootstrap repository. Complete this checklist on NixOS before p
 - [x] Same-version digest/checksum mutation paths fail closed.
 - [x] GitHub Actions references are immutable full commit SHAs.
 - [x] No credentials, local paths, result symlinks, Docker state, or downloaded archives are staged.
-- [ ] Push CI passes.
-- [ ] One-time Update FloCI dispatch passes.
-- [ ] One-time Monthly Maintenance dispatch passes.
+- [x] Push CI passes.
+- [x] One-time Update FloCI dispatch passes.
+- [x] One-time Monthly Maintenance dispatch passes.
 
 The transitive-sidecar limitation documented in README is expected and is not a failure of the main package reproducibility contract.
