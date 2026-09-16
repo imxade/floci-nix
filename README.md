@@ -75,29 +75,29 @@ The updater resolves and hashes every supported architecture before committing m
 Official FloCI CLI:
 
 ```bash
-nix run github:YOUR_USER/floci-nix#floci -- --version
+nix run github:imxade/floci-nix#floci -- --version
 ```
 
 Stable standard emulators:
 
 ```bash
-nix run github:YOUR_USER/floci-nix#aws
-nix run github:YOUR_USER/floci-nix#azure
-nix run github:YOUR_USER/floci-nix#gcp
-nix run github:YOUR_USER/floci-nix#oci
+nix run github:imxade/floci-nix#aws
+nix run github:imxade/floci-nix#azure
+nix run github:imxade/floci-nix#gcp
+nix run github:imxade/floci-nix#oci
 ```
 
 Stable compatibility images:
 
 ```bash
-nix run github:YOUR_USER/floci-nix#aws-compat
-nix run github:YOUR_USER/floci-nix#oci-compat
+nix run github:imxade/floci-nix#aws-compat
+nix run github:imxade/floci-nix#oci-compat
 ```
 
 On ARM64, the AWS baseline build is also available:
 
 ```bash
-nix run github:YOUR_USER/floci-nix#aws-baseline
+nix run github:imxade/floci-nix#aws-baseline
 ```
 
 With no arguments, each product launcher executes `start`. Arguments behave like the corresponding product-scoped FloCI CLI command:
@@ -116,19 +116,19 @@ nix run .#oci -- setup
 ### Installing packages
 
 ```bash
-nix profile install github:YOUR_USER/floci-nix#floci
-nix profile install github:YOUR_USER/floci-nix#floci-aws
-nix profile install github:YOUR_USER/floci-nix#floci-aws-compat
-nix profile install github:YOUR_USER/floci-nix#floci-az
-nix profile install github:YOUR_USER/floci-nix#floci-gcp
-nix profile install github:YOUR_USER/floci-nix#floci-oci
-nix profile install github:YOUR_USER/floci-nix#floci-oci-compat
+nix profile install github:imxade/floci-nix#floci
+nix profile install github:imxade/floci-nix#floci-aws
+nix profile install github:imxade/floci-nix#floci-aws-compat
+nix profile install github:imxade/floci-nix#floci-az
+nix profile install github:imxade/floci-nix#floci-gcp
+nix profile install github:imxade/floci-nix#floci-oci
+nix profile install github:imxade/floci-nix#floci-oci-compat
 ```
 
 On ARM64:
 
 ```bash
-nix profile install github:YOUR_USER/floci-nix#floci-aws-baseline
+nix profile install github:imxade/floci-nix#floci-aws-baseline
 ```
 
 ### Immutable image archives
