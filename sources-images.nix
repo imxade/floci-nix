@@ -61,92 +61,92 @@
 
   "azure" = {
     "x86_64-linux" = {
-      version = "0.14.0";
+      version = "0.15.0";
       imageName = "floci/floci-az";
-      upstreamTag = "0.14.0";
-      imageDigest = "sha256:a35e74dfca9a5e811090d8ae98876044fc8990a8874ee525231f524ca56679db";
-      hash = "sha256-ObURv9ZnmFknV/tcAf3OFmiPVoLEZ7Rr+Lk67q4G9zU=";
+      upstreamTag = "0.15.0";
+      imageDigest = "sha256:530635d603223e120adbf9221a97560cffc6991d65fa0c72d0f79d1097974c89";
+      hash = "sha256-SLBl/IKWF7ZvPW7DCHrEyZebS+FK50caKZyFoMddclg=";
       finalImageName = "floci-nix/azure";
-      finalImageTag = "0.14.0-sha256-a35e74dfca9a5e81";
+      finalImageTag = "0.15.0-sha256-530635d603223e12";
       arch = "amd64";
     };
     "aarch64-linux" = {
-      version = "0.14.0";
+      version = "0.15.0";
       imageName = "floci/floci-az";
-      upstreamTag = "0.14.0";
-      imageDigest = "sha256:a35e74dfca9a5e811090d8ae98876044fc8990a8874ee525231f524ca56679db";
-      hash = "sha256-VbYD/FCYMqJbQiSoElLCVbNmJ93oOxfWErREk4JjLXQ=";
+      upstreamTag = "0.15.0";
+      imageDigest = "sha256:530635d603223e120adbf9221a97560cffc6991d65fa0c72d0f79d1097974c89";
+      hash = "sha256-L8eSeWZIYDe4IgMYEXC4C2CkOdOD8kHmABkANDN/j4k=";
       finalImageName = "floci-nix/azure";
-      finalImageTag = "0.14.0-sha256-a35e74dfca9a5e81";
+      finalImageTag = "0.15.0-sha256-530635d603223e12";
       arch = "arm64";
     };
   };
 
   "gcp" = {
     "x86_64-linux" = {
-      version = "0.10.0";
+      version = "0.11.0";
       imageName = "floci/floci-gcp";
-      upstreamTag = "0.10.0";
-      imageDigest = "sha256:405c128b685afbc461276820f2286defcc3a6fa478755067d3e3f740c5503c07";
-      hash = "sha256-9ZhHBqR8HZRkB5OX5fxrw+FAPdFUrCSJ0kJ+XAz1SkI=";
+      upstreamTag = "0.11.0";
+      imageDigest = "sha256:eae9683d806ceb643bcb36aee97cdb8cad13c3e2959cd053bf40e481994fde12";
+      hash = "sha256-swN4hdXNUePcl5a2XleGOaaTR6Mu/A682HTUdG1dCac=";
       finalImageName = "floci-nix/gcp";
-      finalImageTag = "0.10.0-sha256-405c128b685afbc4";
+      finalImageTag = "0.11.0-sha256-eae9683d806ceb64";
       arch = "amd64";
     };
     "aarch64-linux" = {
-      version = "0.10.0";
+      version = "0.11.0";
       imageName = "floci/floci-gcp";
-      upstreamTag = "0.10.0";
-      imageDigest = "sha256:405c128b685afbc461276820f2286defcc3a6fa478755067d3e3f740c5503c07";
-      hash = "sha256-d+EC6C5MeunP4BuSrAAQTu6jdBkW95hJgusGqG55f/8=";
+      upstreamTag = "0.11.0";
+      imageDigest = "sha256:eae9683d806ceb643bcb36aee97cdb8cad13c3e2959cd053bf40e481994fde12";
+      hash = "sha256-RDMVSvYpnfxQmcRW/9zhFLQcvkKDa87dhG8sh5c8W58=";
       finalImageName = "floci-nix/gcp";
-      finalImageTag = "0.10.0-sha256-405c128b685afbc4";
+      finalImageTag = "0.11.0-sha256-eae9683d806ceb64";
       arch = "arm64";
     };
   };
 
   "oci" = {
     "x86_64-linux" = {
-      version = "0.4.2";
+      version = "0.5.0";
       imageName = "floci/floci-oci";
-      upstreamTag = "0.4.2";
-      imageDigest = "sha256:98ba24585a582ed0b1f482aa4ac11fcd65f39effec51c3ada8a3182b30bcad3b";
-      hash = "sha256-fumc47F9FpN/19rP/KPntgN/Wjn0Z+CyJ+Pfxv50H3Q=";
+      upstreamTag = "0.5.0";
+      imageDigest = "sha256:3cb5af867fb2a4e8b60f8cf6fd0acf4873108f01d481c0aac23c01ca00f935ae";
+      hash = "sha256-m6LPFgw4got8lMN5rgd0DxFO6CHGPChWDpOvKZID/WU=";
       finalImageName = "floci-nix/oci";
-      finalImageTag = "0.4.2-sha256-98ba24585a582ed0";
+      finalImageTag = "0.5.0-sha256-3cb5af867fb2a4e8";
       arch = "amd64";
     };
     "aarch64-linux" = {
-      version = "0.4.2";
+      version = "0.5.0";
       imageName = "floci/floci-oci";
-      upstreamTag = "0.4.2";
-      imageDigest = "sha256:98ba24585a582ed0b1f482aa4ac11fcd65f39effec51c3ada8a3182b30bcad3b";
-      hash = "sha256-GkdQ1BRD8PaENfkEzt+oH58wBjE+XQI56Puum7fFTw4=";
+      upstreamTag = "0.5.0";
+      imageDigest = "sha256:3cb5af867fb2a4e8b60f8cf6fd0acf4873108f01d481c0aac23c01ca00f935ae";
+      hash = "sha256-FkJJ8X4wa0a9iYQw2/1wNUHI9BgjWr6bDaEbv1bQTAc=";
       finalImageName = "floci-nix/oci";
-      finalImageTag = "0.4.2-sha256-98ba24585a582ed0";
+      finalImageTag = "0.5.0-sha256-3cb5af867fb2a4e8";
       arch = "arm64";
     };
   };
 
   "oci-compat" = {
     "x86_64-linux" = {
-      version = "0.4.2";
+      version = "0.5.0";
       imageName = "floci/floci-oci";
-      upstreamTag = "0.4.2-compat";
-      imageDigest = "sha256:1a200fae5aaa90f611f9892c24db9f07465fcfc66be4ea169738d7be20bb8af1";
-      hash = "sha256-jLIKn0TkdmZPcZuj9vHXGYb02mqkMv/6dIWVnp0QOuw=";
+      upstreamTag = "0.5.0-compat";
+      imageDigest = "sha256:0157d48ef86cf5b5b3d4d229a1c2ba07b97b433231bcb3ab9ba0a6e57c865829";
+      hash = "sha256-HbaFx+9F36iVbAwY5Z1nPrpK2b1OmfHhYczplor6qRw=";
       finalImageName = "floci-nix/oci-compat";
-      finalImageTag = "0.4.2-sha256-1a200fae5aaa90f6";
+      finalImageTag = "0.5.0-sha256-0157d48ef86cf5b5";
       arch = "amd64";
     };
     "aarch64-linux" = {
-      version = "0.4.2";
+      version = "0.5.0";
       imageName = "floci/floci-oci";
-      upstreamTag = "0.4.2-compat";
-      imageDigest = "sha256:1a200fae5aaa90f611f9892c24db9f07465fcfc66be4ea169738d7be20bb8af1";
-      hash = "sha256-/XS1wUm1C3g0NtgSmY9oKtOLGqWRrP3EH4YobJ4oicI=";
+      upstreamTag = "0.5.0-compat";
+      imageDigest = "sha256:0157d48ef86cf5b5b3d4d229a1c2ba07b97b433231bcb3ab9ba0a6e57c865829";
+      hash = "sha256-RPxpuOLwm1TRJuxtSx6nJrNJMpCoX4mYc7mPOa3OiPU=";
       finalImageName = "floci-nix/oci-compat";
-      finalImageTag = "0.4.2-sha256-1a200fae5aaa90f6";
+      finalImageTag = "0.5.0-sha256-0157d48ef86cf5b5";
       arch = "arm64";
     };
   };
